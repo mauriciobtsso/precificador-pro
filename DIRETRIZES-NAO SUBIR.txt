@@ -1,0 +1,100 @@
+Manus!
+
+1. Visão Geral e Objetivos do Projeto
+
+Vamos construir uma aplicação web completa e profissional chamada "Precificador Pro" para a empresa M4 Tática. O objetivo é criar uma ferramenta interna, robusta e de alta qualidade para calcular o preço de venda de produtos com base em uma série de custos. Este projeto é a versão 2.0 de um MVP anterior, e o foco agora é em uma arquitetura sólida, layout agradável, responsividade para celulares e funcionalidades completas.
+
+2. Stack de Tecnologias (V2.0)
+
+Backend: Python com o framework Flask, organizado em Blueprints para modularidade.
+
+Frontend: Bootstrap 5 para garantir um layout profissional e responsivo desde o início.
+
+Banco de Dados: PostgreSQL, hospedado externamente na plataforma Neon.
+
+Hospedagem: Render, configurado para integração contínua com o GitHub.
+
+Versionamento: Git e GitHub.
+
+3. Estrutura do Projeto (Arquitetura com Blueprints)
+
+precificador-pro/
+├── app/
+│   ├── __init__.py         # Fábrica da aplicação
+│   ├── models.py           # Modelos do banco (Produto, Taxa, User)
+│   ├── static/             # Arquivos CSS e JS customizados
+│   ├── templates/          # Templates HTML
+│   │   └── base.html       # Template mestre com Bootstrap
+│   └── main/
+│       └── routes.py       # Onde ficarão as rotas da aplicação
+├── .env                    # Arquivo para variáveis de ambiente (senha do banco)
+├── requirements.txt        # Lista de dependências Python
+└── run.py                  # Arquivo para iniciar a aplicação
+4. Lógica de Negócio Principal (O "Cérebro" do Sistema)
+
+Cálculo de Custo: O sistema deve calcular o custo total de um produto a partir dos seguintes campos de entrada:
+
+Valor do Fornecedor (R$)
+
+Desconto do Fornecedor (%)
+
+Frete (R$)
+
+IPI (deve ter a opção de ser um valor fixo em R$ ou um percentual % embutido, com a lógica de cálculo apropriada para cada caso).
+
+DIFAL (%)
+
+Cálculo de Preço: O preço de venda deve ser calculado a partir do custo total, considerando também:
+
+Imposto de Venda (%)
+
+Um de três métodos de precificação à escolha do usuário: Margem de Lucro (%), Lucro Alvo (R$) ou Preço Final (R$).
+
+O formulário de precificação deve ser interativo, mostrando os resultados em tempo real (Custo Total, Lucro Líquido, etc.) em uma seção separada, conforme o usuário preenche os campos.
+
+5. Funcionalidades Essenciais
+
+Autenticação: Sistema de login simples para proteger o acesso.
+
+Dashboard: Painel inicial com indicadores chave (ex: margem média, produto mais lucrativo).
+
+Gerenciamento de Produtos (CRUD Completo):
+
+Listar todos os produtos.
+
+Adicionar, editar e excluir produtos através de um formulário completo e interativo.
+
+Importação de Produtos em Massa: Funcionalidade para fazer upload de uma planilha (.xlsx ou .csv) para cadastrar múltiplos produtos de uma só vez.
+
+Gerenciamento de Taxas (CRUD Completo):
+
+Listar, adicionar, editar e excluir as taxas de pagamento.
+
+O campo "Coeficiente" deve ser calculado automaticamente com base na taxa percentual.
+
+Simulação e Comunicação:
+
+No formulário de produto, após o cálculo do preço, exibir uma simulação de parcelamento.
+
+Botão para "Copiar para WhatsApp" com o texto da simulação formatado.
+
+Portanto, trata-se de uma aplicação web robusta para cálculo de preços, utilizando Python/Flask no backend, Bootstrap 5 no frontend, PostgreSQL como banco de dados e hospedagem no Render. A lógica de negócio para precificação é complexa e as funcionalidades essenciais, como CRUD de produtos e taxas, importação em massa e simulação de parcelamento, são bem definidas.
+
+Quero que já esteja pronto para ajudar no desenvolvimento deste projeto. Auxiliando com:
+
+- Configuração da estrutura do projeto com Blueprints.
+- Implementação do backend com Flask, incluindo modelos e rotas.
+- Desenvolvimento do frontend responsivo com Bootstrap 5.
+- Integração com o banco de dados PostgreSQL no Neon.
+- Implementação da lógica de cálculo de custo e preço.
+- Desenvolvimento das funcionalidades essenciais, como autenticação, gerenciamento de produtos e taxas, importação e simulação.
+
+Vamos começar criando a estrutura de arquivos e o código base para a nossa aplicação.
+
+Tarefa: Por favor, gere o conteúdo para os seguintes arquivos, de acordo com a arquitetura planejada:
+
+1. requirements.txt (a nossa lista de "ingredientes" Python)
+2. run.py (o arquivo que irá iniciar a aplicação)
+3. app/__init__.py (a "fábrica" que irá construir nossa aplicação)
+4. .env.example (um arquivo de exemplo para as variáveis de ambiente)
+5. .gitignore (para dizer ao Git quais arquivos ignorar)

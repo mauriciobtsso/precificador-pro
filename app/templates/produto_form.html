@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}{% if produto %}Editar Produto{% else %}Precificar Novo Produto{% endif %} - Precificador Pro{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">{% if produto %}Editar Produto: {{ produto.nome }}{% else %}Precificar Novo Produto{% endif %}</h1>
+        <a href="{{ url_for('main.produtos') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Voltar para a Lista
+        </a>
+    </div>
+
+    <form method="POST" id="precificador-form">
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="card mb-4">
+                    <div class="card-header fw-bold">
+                        Informações de Custo
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="codigo" class="form-label">SKU</label>
+                                <input type="text" class="form-control" id="codigo" name="codigo" value="{{ produto.codigo if produto else '' }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nome" class="form-label">Nome do Produto</label>
+                                <input type="text" class="form-control" id="nome" name="nome" value="{{ produto.nome if produto else '' }}" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="valor_fornecedor_real" class="form-label">Valor Fornecedor (R$)</label>
+                                <input type="text" class="form-control" id="valor_fornecedor_real" name="valor_fornecedor_real" value="{{ produto.valor_fornecedor_real if produto else '' }}" inputmode="decimal" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="desconto_fornecedor_percentual" class="form-label">Desconto (%)</label>
+                                <input type="text" class="form-control" id="desconto_fornecedor_percentual" name="desconto_fornecedor_percentual" value="{{ produto.desconto_fornecedor_percentual if produto else '' }}" inputmode="decimal">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="frete_real" class="form-label">Frete (R$)</label>
+                                <input type="text" class="form-control" id="frete_real" name="frete_real" value="{{ produto.frete_real if produto else '' }}" inputmode="decimal">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="difal_percentual" class="form-label">DIFAL (%)</label>
+                                <input type="text" class="form-control" id="difal_percentual" name="difal_percentual" value="{{ produto.difal_percentual if produto else '' }}" inputmode="decimal">
+                            </div>
+                        </div>
+                        <div class="row align-items-end">
+                             <div class="col-md-6 mb-3">
+                                <label for="ipi_valor" class="form-label">Valor IPI</label>
+                                <input type="text" class="form-control" id="ipi_valor" name="ipi_valor" value="{{ produto.ipi_valor if produto else '' }}" inputmode="decimal">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de IPI</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="ipi_tipo" id="ipi_fixo" value="fixo" {% if not produto or produto.ipi_tipo == 'fixo' %}checked{% endif %}>
+                                    <label class="form-check-label" for="ipi_fixo">Valor Fixo (R$)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="ipi_tipo" id="ipi_percentual" value="percentual" {% if produto and produto.ipi_tipo == 'percentual' %}checked{% endif %}>
+                                    <label class="form-check-label" for="ipi_percentual">Percentual Embutido (%)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header fw-bold">
+                        Precificação e Impostos de Venda
+                    </div>
+                    <div class="card-body">
+                         <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="imposto_venda_percentual" class="form-label">Imposto de Venda (%):</label>
+                                <input type="text" class="form-control" id="imposto_venda_percentual" name="imposto_venda_percentual" value="{{ produto.imposto_venda_percentual if produto else '0.0' }}" inputmode="decimal">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Método de Precificação</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="metodo_precificacao" id="margem" value="margem" {% if not produto or produto.metodo_precificacao == 'margem' %}checked{% endif %}>
+                                <label class="form-check-label" for="margem">Margem (%)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="metodo_precificacao" id="lucro_alvo" value="lucro_alvo" {% if produto and produto.metodo_precificacao == 'lucro_alvo' %}checked{% endif %}>
+                                <label class="form-check-label" for="lucro_alvo">Lucro Alvo (R$)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="metodo_precificacao" id="preco_final" value="preco_final" {% if produto and produto.metodo_precificacao == 'preco_final' %}checked{% endif %}>
+                                <label class="form-check-label" for="preco_final">Preço Final (R$)</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="valor_metodo" class="form-label">Valor do Método</label>
+                            <input type="text" class="form-control" id="valor_metodo" name="valor_metodo" value="{{ produto.valor_metodo if produto else '' }}" inputmode="decimal" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card mb-4 position-sticky" style="top: 2rem;">
+                    <div class="card-header fw-bold">
+                        Resultados em Tempo Real
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-6">Custo Total:</dt>
+                            <dd class="col-sm-6 text-end" id="resultado_custo_total">R$ 0,00</dd>
+                            
+                            <dt class="col-sm-6">Imposto Venda (R$):</dt>
+                            <dd class="col-sm-6 text-end" id="resultado_imposto_venda">R$ 0,00</dd>
+
+                            <dt class="col-sm-6">Preço de Venda:</dt>
+                            <dd class="col-sm-6 text-end fs-5 fw-bold text-primary" id="resultado_preco_venda">R$ 0,00</dd>
+                            
+                            <hr class="my-2">
+
+                            <dt class="col-sm-6 fs-5">Lucro Líquido:</dt>
+                            <dd class="col-sm-6 text-end fs-5 fw-bold text-success" id="resultado_lucro_liquido">R$ 0,00</dd>
+                        </dl>
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="button" class="btn btn-info" onclick="calcularPreco()">
+                                <i class="bi bi-calculator me-1"></i> Calcular
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg">Salvar Produto</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    {% if produto and produto.preco_a_vista %}
+    <div class="card mt-4">
+        <div class="card-header">
+            Simulação de Parcelamento (Baseado no Preço Salvo: {{ produto.preco_a_vista|currency }})
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm" id="parcelamento-table">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th class="text-end">Valor da Parcela</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if taxas_dict %}
+                            {% for i in range(1, 13) %}
+                                {% set metodo = i ~ "x" %}
+                                {% if metodo in taxas_dict %}
+                                <tr>
+                                    <td>{{ metodo }}</td>
+                                    {% set preco_parcelado = produto.preco_a_vista / taxas_dict[metodo].coeficiente %}
+                                    <td class="text-end">{{ (preco_parcelado / i)|currency }}</td>
+                                    <td class="text-end">{{ preco_parcelado|currency }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+             <button type="button" onclick="copiarParaWhatsApp()" class="btn btn-success mt-3">
+                <i class="bi bi-whatsapp me-1"></i> Copiar para WhatsApp
+            </button>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://unpkg.com/imask"></script>
+    
+    {% if produto and produto.preco_a_vista %}
+    <script>
+        function copiarParaWhatsApp() {
+            const produtoNome = {{ produto.nome|tojson }};
+            const precoAVista = {{ produto.preco_a_vista|float }};
+            let whatsappText = `Simulação de Parcelamento\nM4 Tática\nProduto: ${produtoNome} Valor à Vista ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(precoAVista)}\n\n`;
+            const table = document.getElementById("parcelamento-table");
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                if(row.cells.length < 3) continue;
+                const metodo = row.cells[0].innerText;
+                const valorParcela = row.cells[1].innerText;
+                const total = row.cells[2].innerText;
+                whatsappText += `${metodo}: ${valorParcela} = ${total}\n`;
+            }
+            whatsappText += `\nOs valores poderão sofrer alterações sem aviso prévio`;
+            navigator.clipboard.writeText(whatsappText).then(() => {
+                alert("Texto copiado para a área de transferência!");
+            });
+        }
+    </script>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const allMasks = {};
+            const currencyOptions = { mask: 'R$ num', blocks: { num: { mask: Number, scale: 2, thousandsSeparator: '.', padFractionalZeros: true, radix: ',', mapToRadix: ['.'] } } };
+            const percentageOptions = { mask: 'num %', blocks: { num: { mask: Number, scale: 2, thousandsSeparator: '.', padFractionalZeros: false, radix: ',', mapToRadix: ['.'] } } };
+            
+            const inputsToMask = [
+                { id: 'valor_fornecedor_real', options: currencyOptions },
+                { id: 'desconto_fornecedor_percentual', options: percentageOptions },
+                { id: 'frete_real', options: currencyOptions },
+                { id: 'ipi_valor', options: {} },
+                { id: 'difal_percentual', options: percentageOptions },
+                { id: 'imposto_venda_percentual', options: percentageOptions },
+                { id: 'valor_metodo', options: {} }
+            ];
+
+            inputsToMask.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    allMasks[item.id] = IMask(element, item.options);
+                }
+            });
+
+            function updateDynamicMasks() {
+                const ipiTipo = document.querySelector('input[name="ipi_tipo"]:checked').value;
+                const metodoPrecificacao = document.querySelector('input[name="metodo_precificacao"]:checked').value;
+
+                if (allMasks['ipi_valor']) allMasks['ipi_valor'].destroy();
+                allMasks['ipi_valor'] = IMask(document.getElementById('ipi_valor'), ipiTipo === 'percentual' ? percentageOptions : currencyOptions);
+
+                if (allMasks['valor_metodo']) allMasks['valor_metodo'].destroy();
+                allMasks['valor_metodo'] = IMask(document.getElementById('valor_metodo'), metodoPrecificacao === 'margem' ? percentageOptions : currencyOptions);
+            }
+
+            document.querySelectorAll('input[name="ipi_tipo"], input[name="metodo_precificacao"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    updateDynamicMasks();
+                    calcularPreco(); 
+                });
+            });
+            
+            updateDynamicMasks();
+
+            window.calcularPreco = function() {
+                const unmask = (id) => {
+                    const mask = allMasks[id];
+                    if (mask && mask.unmaskedValue) {
+                        return parseFloat(mask.unmaskedValue);
+                    }
+                    return 0;
+                };
+
+                const valorFornecedor = unmask('valor_fornecedor_real');
+                const desconto = unmask('desconto_fornecedor_percentual');
+                const frete = unmask('frete_real');
+                const difal = unmask('difal_percentual');
+                const ipiTipo = document.querySelector('input[name="ipi_tipo"]:checked').value;
+                const ipiValorForm = unmask('ipi_valor');
+                const impostoVenda = unmask('imposto_venda_percentual');
+                const metodoPrecificacao = document.querySelector('input[name="metodo_precificacao"]:checked').value;
+                const valorMetodo = unmask('valor_metodo');
+
+                const valorCompraDesconto = valorFornecedor * (1 - (desconto / 100));
+                
+                let valorIpi = 0;
+                if (ipiTipo === 'percentual' && ipiValorForm > 0) {
+                    valorIpi = valorCompraDesconto - (valorCompraDesconto / (1 + (ipiValorForm / 100)));
+                } else {
+                    valorIpi = ipiValorForm;
+                }
+
+                const baseCalculoDifal = (valorCompraDesconto - valorIpi) + frete;
+                const valorDifal = baseCalculoDifal * (difal / 100);
+                const custoTotal = valorCompraDesconto + frete + valorDifal;
+
+                let precoVenda = 0;
+                if (metodoPrecificacao === 'margem' && valorMetodo < 100) {
+                    const denominador = (1 - (impostoVenda / 100) - (valorMetodo / 100));
+                    if (denominador > 0) precoVenda = custoTotal / denominador;
+                } else if (metodoPrecificacao === 'lucro_alvo') {
+                    const denominador = (1 - (impostoVenda / 100));
+                    if (denominador > 0) precoVenda = (custoTotal + valorMetodo) / denominador;
+                } else if (metodoPrecificacao === 'preco_final') {
+                    precoVenda = valorMetodo;
+                }
+
+                const valorImpostoVenda = precoVenda * (impostoVenda / 100);
+                const lucroLiquido = precoVenda - custoTotal - valorImpostoVenda;
+                
+                const formatCurrencyJS = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+
+                document.getElementById('resultado_custo_total').innerText = formatCurrencyJS(custoTotal);
+                document.getElementById('resultado_imposto_venda').innerText = formatCurrencyJS(valorImpostoVenda);
+                document.getElementById('resultado_preco_venda').innerText = formatCurrencyJS(precoVenda);
+                document.getElementById('resultado_lucro_liquido').innerText = formatCurrencyJS(lucroLiquido);
+            }
+
+            document.getElementById('precificador-form').addEventListener('input', calcularPreco);
+            
+            if ({{ produto is not none|tojson }}) {
+                // Força o cálculo inicial ao carregar a página de edição
+                setTimeout(calcularPreco, 100); 
+            }
+        });
+    </script>
+{% endblock %}

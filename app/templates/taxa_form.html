@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if taxa %}Editar Taxa{% else %}Adicionar Nova Taxa{% endif %} - Precificador Pro{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">{% if taxa %}Editar Taxa{% else %}Adicionar Nova Taxa{% endif %}</h1>
+        <a href="{{ url_for('main.taxas') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Voltar para a Lista
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="metodo" class="form-label">Método de Pagamento</label>
+                        <input type="text" class="form-control" id="metodo" name="metodo" value="{{ taxa.metodo if taxa else '' }}" required>
+                        <div class="form-text">Ex: Pix, Débito, 1x, 2x, etc.</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="taxa_percentual" class="form-label">Taxa (%)</label>
+                        <input type="text" class="form-control" id="taxa_percentual" name="taxa_percentual" value="{{ taxa.taxa_percentual if taxa else '' }}" inputmode="decimal" required>
+                         <div class="form-text">Use ponto ou vírgula como separador. Ex: 4.99</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="coeficiente" class="form-label">Coeficiente (Calculado)</label>
+                        <input type="text" class="form-control" id="coeficiente" name="coeficiente" value="{{ taxa.coeficiente if taxa else '' }}" readonly>
+                        <div class="form-text">Calculado automaticamente a partir da Taxa.</div>
+                    </div>
+                </div>
+                <hr>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/imask"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Máscara para o campo de porcentagem
+        const percentageMask = IMask(document.getElementById('taxa_percentual'), {
+            mask: 'num %',
+            blocks: {
+                num: {
+                    mask: Number,
+                    scale: 2,
+                    thousandsSeparator: '.',
+                    padFractionalZeros: false,
+                    radix: ',',
+                    mapToRadix: ['.']
+                }
+            }
+        });
+
+        const taxaInput = document.getElementById('taxa_percentual');
+        const coeficienteInput = document.getElementById('coeficiente');
+
+        function calcularCoeficiente() {
+            let taxa = percentageMask.unmaskedValue ? parseFloat(percentageMask.unmaskedValue) : 0;
+            
+            if (taxa >= 0 && taxa < 100) {
+                let coeficiente = 1 - (taxa / 100);
+                // Formata com 4 casas decimais e usa vírgula
+                coeficienteInput.value = coeficiente.toFixed(4).replace('.', ',');
+            } else {
+                coeficienteInput.value = 'Inválido';
+            }
+        }
+
+        // Adiciona o evento para calcular sempre que o usuário digitar
+        taxaInput.addEventListener('input', calcularCoeficiente);
+
+        // Calcula o valor inicial ao carregar a página (caso seja uma edição)
+        calcularCoeficiente();
+    });
+</script>
+{% endblock %}
