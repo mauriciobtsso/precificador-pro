@@ -8,7 +8,7 @@ def dashboard():
     # Por enquanto, apenas uma página de boas-vindas
     return "<h1>Dashboard - Bem-vindo!</h1>"
 
-@main.route("/login")
+@main.route("/login", methods=["GET", "POST"])
 def login():
     # No futuro, aqui teremos o formulário de login
     return render_template("login.html")
