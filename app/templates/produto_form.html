@@ -133,7 +133,7 @@
         </div>
     </form>
     
-    {% if produto and produto.preco_a_vista %}
+    {% if produto and produto.preco_a_vista and taxas_dict %}
     <div class="card mt-4">
         <div class="card-header">
             Simulação de Parcelamento (Baseado no Preço Salvo: {{ produto.preco_a_vista|currency }})
@@ -149,19 +149,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% if taxas_dict %}
-                            {% for i in range(1, 13) %}
-                                {% set metodo = i ~ "x" %}
-                                {% if metodo in taxas_dict %}
-                                <tr>
-                                    <td>{{ metodo }}</td>
-                                    {% set preco_parcelado = produto.preco_a_vista / taxas_dict[metodo].coeficiente %}
-                                    <td class="text-end">{{ (preco_parcelado / i)|currency }}</td>
-                                    <td class="text-end">{{ preco_parcelado|currency }}</td>
-                                </tr>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
+                         {% for i in range(1, 13) %}
+                            {% set metodo = i ~ "x" %}
+                            {% if metodo in taxas_dict %}
+                            <tr>
+                                <td>{{ metodo }}</td>
+                                {% set preco_parcelado = produto.preco_a_vista / taxas_dict[metodo].coeficiente %}
+                                <td class="text-end">{{ (preco_parcelado / i)|currency }}</td>
+                                <td class="text-end">{{ preco_parcelado|currency }}</td>
+                            </tr>
+                            {% endif %}
+                         {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -184,11 +182,10 @@
             let whatsappText = `Simulação de Parcelamento\nM4 Tática\nProduto: ${produtoNome} Valor à Vista ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(precoAVista)}\n\n`;
             const table = document.getElementById("parcelamento-table");
             for (let i = 0; i < table.rows.length; i++) {
-                const row = table.rows[i];
-                if(row.cells.length < 3) continue;
-                const metodo = row.cells[0].innerText;
-                const valorParcela = row.cells[1].innerText;
-                const total = row.cells[2].innerText;
+                if (table.rows[i].cells.length < 3) continue;
+                const metodo = table.rows[i].cells[0].innerText;
+                const valorParcela = table.rows[i].cells[1].innerText;
+                const total = table.rows[i].cells[2].innerText;
                 whatsappText += `${metodo}: ${valorParcela} = ${total}\n`;
             }
             whatsappText += `\nOs valores poderão sofrer alterações sem aviso prévio`;
@@ -226,10 +223,10 @@
                 const ipiTipo = document.querySelector('input[name="ipi_tipo"]:checked').value;
                 const metodoPrecificacao = document.querySelector('input[name="metodo_precificacao"]:checked').value;
 
-                if (allMasks['ipi_valor']) allMasks['ipi_valor'].destroy();
+                if (allMasks['ipi_valor']?.destroy) allMasks['ipi_valor'].destroy();
                 allMasks['ipi_valor'] = IMask(document.getElementById('ipi_valor'), ipiTipo === 'percentual' ? percentageOptions : currencyOptions);
 
-                if (allMasks['valor_metodo']) allMasks['valor_metodo'].destroy();
+                if (allMasks['valor_metodo']?.destroy) allMasks['valor_metodo'].destroy();
                 allMasks['valor_metodo'] = IMask(document.getElementById('valor_metodo'), metodoPrecificacao === 'margem' ? percentageOptions : currencyOptions);
             }
 
@@ -246,20 +243,29 @@
                 const unmask = (id) => {
                     const mask = allMasks[id];
                     if (mask && mask.unmaskedValue) {
-                        return parseFloat(mask.unmaskedValue);
+                        return parseFloat(mask.unmaskedValue) / 100;
                     }
                     return 0;
                 };
+                
+                const unmaskPercent = (id) => {
+                     const mask = allMasks[id];
+                    if (mask && mask.unmaskedValue) {
+                        return parseFloat(mask.unmaskedValue);
+                    }
+                    return 0;
+                }
 
                 const valorFornecedor = unmask('valor_fornecedor_real');
-                const desconto = unmask('desconto_fornecedor_percentual');
+                const desconto = unmaskPercent('desconto_fornecedor_percentual');
                 const frete = unmask('frete_real');
-                const difal = unmask('difal_percentual');
+                const difal = unmaskPercent('difal_percentual');
                 const ipiTipo = document.querySelector('input[name="ipi_tipo"]:checked').value;
-                const ipiValorForm = unmask('ipi_valor');
-                const impostoVenda = unmask('imposto_venda_percentual');
+                const impostoVenda = unmaskPercent('imposto_venda_percentual');
                 const metodoPrecificacao = document.querySelector('input[name="metodo_precificacao"]:checked').value;
-                const valorMetodo = unmask('valor_metodo');
+                const valorMetodo = metodoPrecificacao === 'margem' ? unmaskPercent('valor_metodo') : unmask('valor_metodo');
+
+                const ipiValorForm = ipiTipo === 'percentual' ? unmaskPercent('ipi_valor') : unmask('ipi_valor');
 
                 const valorCompraDesconto = valorFornecedor * (1 - (desconto / 100));
                 
@@ -298,9 +304,10 @@
 
             document.getElementById('precificador-form').addEventListener('input', calcularPreco);
             
+            // Força o cálculo inicial apenas se estiver editando um produto
+            // O setTimeout garante que as máscaras tenham tempo de inicializar os valores
             if ({{ produto is not none|tojson }}) {
-                // Força o cálculo inicial ao carregar a página de edição
-                setTimeout(calcularPreco, 100); 
+                setTimeout(calcularPreco, 150);
             }
         });
     </script>

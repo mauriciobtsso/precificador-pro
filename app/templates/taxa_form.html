@@ -64,7 +64,7 @@
             
             if (taxa >= 0 && taxa < 100) {
                 let coeficiente = 1 - (taxa / 100);
-                // Formata com 4 casas decimais e usa vírgula
+                // Formata com 4 casas decimais e usa vírgula para exibição
                 coeficienteInput.value = coeficiente.toFixed(4).replace('.', ',');
             } else {
                 coeficienteInput.value = 'Inválido';
@@ -77,5 +77,5 @@
         // Calcula o valor inicial ao carregar a página (caso seja uma edição)
         calcularCoeficiente();
     });
-</script>
+script>
 {% endblock %}
