@@ -9,39 +9,27 @@ load_dotenv()
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
-login_manager.login_message = "Por favor, faça o login para acessar esta página."
-login_manager.login_message_category = "info"
-
-def format_currency(value):
-    if value is None: return "N/A"
-    formatted_value = f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"R$ {formatted_value}"
 
 def create_app():
     app = Flask(__name__)
-
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'uma-chave-secreta-de-fallback-muito-segura')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        "pool_pre_ping": True,
-        "pool_recycle": 300,
-    }
+    app.config.from_mapping(
+        SECRET_KEY=os.getenv('SECRET_KEY', 'dev'),
+        SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL'),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SQLALCHEMY_ENGINE_OPTIONS={"pool_pre_ping": True, "pool_recycle": 300}
+    )
 
     db.init_app(app)
     login_manager.init_app(app)
 
-    app.jinja_env.filters['currency'] = format_currency
-
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
-    
+
     with app.app_context():
         from . import models
-        db.create_all() # Garante que as tabelas existam
+        db.create_all()
 
-        # AQUI ESTÁ A MÁGICA:
-        # Importa nossa função de seed e a executa se o banco estiver vazio
+        # AQUI ESTÁ A MÁGICA: Popula o banco se ele estiver vazio
         from seed import seed_data
         seed_data(db)
 
