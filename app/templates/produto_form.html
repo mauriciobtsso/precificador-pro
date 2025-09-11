@@ -1,49 +1,78 @@
 {% extends "base.html" %}
 {% block title %}{% if produto %}Editar Produto{% else %}Precificar Novo Produto{% endif %}{% endblock %}
 {% block content %}
+<div class="container mt-4">
+    <h2>{{ 'Editar Produto' if produto else 'Novo Produto' }}</h2>
     <form method="POST" id="precificador-form">
         <div class="row">
-            <div class="col-lg-7">
-                <!-- Nome -->
-                <div class="mb-3">
-                    <label for="nome" class="form-label">Nome do Produto</label>
-                    <input type="text" class="form-control" id="nome" name="nome" value="{{ produto.nome if produto else '' }}" required>
-                </div>
+            <!-- Nome -->
+            <div class="col-md-12 mb-3">
+                <label for="nome" class="form-label">Nome do Produto</label>
+                <input type="text" class="form-control" id="nome" name="nome"
+                       value="{{ produto.nome if produto else '' }}" required>
+            </div>
 
-                <!-- Custo -->
-                <div class="mb-3">
-                    <label for="custo" class="form-label">Custo (R$)</label>
-                    <input type="number" step="0.01" class="form-control" id="custo" name="custo" value="{{ produto.custo if produto else '' }}" oninput="calcularPreco()" required>
-                </div>
+            <!-- Custo -->
+            <div class="col-md-6 mb-3">
+                <label for="custo" class="form-label">Custo Total (R$)</label>
+                <input type="number" step="0.01" class="form-control" id="custo" name="custo"
+                       value="{{ produto.custo if produto else '' }}" oninput="calcularPreco()" required>
+            </div>
 
-                <!-- Margem -->
-                <div class="mb-3">
-                    <label for="margem" class="form-label">Margem de Lucro (%)</label>
-                    <input type="number" step="0.01" class="form-control" id="margem" name="margem" value="{{ produto.margem if produto else '' }}" oninput="calcularPreco()" required>
-                </div>
+            <!-- Método de Lucro -->
+            <div class="col-md-6 mb-3">
+                <label for="lucroTipo" class="form-label">Método de Lucro</label>
+                <select id="lucroTipo" class="form-select" onchange="alternarLucro()">
+                    <option value="margem">Margem (%)</option>
+                    <option value="alvo">Lucro Alvo (R$)</option>
+                    <option value="preco">Preço Final (R$)</option>
+                </select>
+            </div>
 
-                <!-- IPI -->
-                <div class="mb-3">
-                    <label for="ipi" class="form-label">IPI (%)</label>
-                    <input type="number" step="0.01" class="form-control" id="ipi" name="ipi" value="{{ produto.ipi if produto else '' }}" oninput="calcularPreco()">
-                </div>
+            <!-- Margem (%) -->
+            <div class="col-md-6 mb-3 lucro-campo" id="campo-margem">
+                <label for="margem" class="form-label">Margem de Lucro (%)</label>
+                <input type="number" step="0.01" class="form-control" id="margem" name="margem"
+                       value="{{ produto.margem if produto else '' }}" oninput="calcularPreco()">
+            </div>
 
-                <!-- DIFAL -->
-                <div class="mb-3">
-                    <label for="difal" class="form-label">DIFAL (%)</label>
-                    <input type="number" step="0.01" class="form-control" id="difal" name="difal" value="{{ produto.difal if produto else '' }}" oninput="calcularPreco()">
-                </div>
+            <!-- Lucro Alvo (R$) -->
+            <div class="col-md-6 mb-3 lucro-campo d-none" id="campo-alvo">
+                <label for="lucroAlvo" class="form-label">Lucro Alvo (R$)</label>
+                <input type="number" step="0.01" class="form-control" id="lucroAlvo" name="lucroAlvo"
+                       value="{{ produto.lucro_alvo if produto else '' }}" oninput="calcularPreco()">
+            </div>
 
-                <!-- Preço de venda calculado -->
-                <div class="mb-3">
-                    <label for="precoVenda" class="form-label">Preço de Venda (R$)</label>
-                    <input type="text" class="form-control" id="precoVenda" name="precoVenda" value="{{ produto.preco_venda if produto else '' }}" readonly>
-                </div>
+            <!-- Preço Final (R$) -->
+            <div class="col-md-6 mb-3 lucro-campo d-none" id="campo-preco">
+                <label for="precoFinal" class="form-label">Preço Final (R$)</label>
+                <input type="number" step="0.01" class="form-control" id="precoFinal" name="precoFinal"
+                       value="{{ produto.preco_final if produto else '' }}" oninput="calcularPreco()">
+            </div>
 
-                <button type="submit" class="btn btn-success">Salvar</button>
-                <a href="{{ url_for('main.produtos') }}" class="btn btn-secondary">Cancelar</a>
+            <!-- IPI -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">IPI</label>
+                <div class="input-group">
+                    <input type="number" step="0.01" class="form-control" id="ipi" name="ipi"
+                           value="{{ produto.ipi if produto else '' }}" oninput="calcularPreco()">
+                    <select id="ipiTipo" class="form-select" onchange="calcularPreco()">
+                        <option value="percent">%</option>
+                        <option value="real">R$</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- DIFAL -->
+            <div class="col-md-6 mb-3">
+                <label for="difal" class="form-label">DIFAL (%)</label>
+                <input type="number" step="0.01" class="form-control" id="difal" name="difal"
+                       value="{{ produto.difal if produto else '' }}" oninput="calcularPreco()">
             </div>
         </div>
+
+        <button type="submit" class="btn btn-success">Salvar</button>
+        <a href="{{ url_for('main.produtos') }}" class="btn btn-secondary">Cancelar</a>
     </form>
 
     <!-- Resultados em Tempo Real -->
@@ -51,53 +80,61 @@
         <div class="card-header">Resultados em Tempo Real</div>
         <div class="card-body">
             <p><strong>Custo Total:</strong> R$ <span id="resCusto">0,00</span></p>
-            <p><strong>Imposto Venda (R$):</strong> R$ <span id="resImposto">0,00</span></p>
-            <p><strong>Valor do IPI (R$):</strong> R$ <span id="resIPI">0,00</span></p>
-            <p><strong>DIFAL a Pagar (R$):</strong> R$ <span id="resDifal">0,00</span></p>
+            <p><strong>Imposto Venda:</strong> R$ <span id="resImposto">0,00</span></p>
+            <p><strong>Valor do IPI:</strong> R$ <span id="resIPI">0,00</span></p>
+            <p><strong>DIFAL a Pagar:</strong> R$ <span id="resDifal">0,00</span></p>
             <p><strong>Preço de Venda:</strong> R$ <span id="resPreco">0,00</span></p>
             <p><strong>Lucro Líquido:</strong> R$ <span id="resLucro">0,00</span></p>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        function calcularPreco() {
-            let custo = parseFloat(document.getElementById("custo").value) || 0;
-            let margem = parseFloat(document.getElementById("margem").value) || 0;
-            let ipi = parseFloat(document.getElementById("ipi").value) || 0;
-            let difal = parseFloat(document.getElementById("difal").value) || 0;
+<script>
+function alternarLucro() {
+    document.querySelectorAll('.lucro-campo').forEach(el => el.classList.add('d-none'));
+    let tipo = document.getElementById('lucroTipo').value;
+    document.getElementById('campo-' + tipo).classList.remove('d-none');
+    calcularPreco();
+}
 
-            // Preço base com margem
-            let precoVenda = custo * (1 + margem/100);
+function calcularPreco() {
+    let custo = parseFloat(document.getElementById("custo").value) || 0;
+    let ipi = parseFloat(document.getElementById("ipi").value) || 0;
+    let ipiTipo = document.getElementById("ipiTipo").value;
+    let difal = parseFloat(document.getElementById("difal").value) || 0;
+    let tipoLucro = document.getElementById("lucroTipo").value;
 
-            // Impostos
-            let valorIPI = precoVenda * (ipi/100);
-            let valorDIFAL = precoVenda * (difal/100);
-            let valorImposto = valorIPI + valorDIFAL;
+    let precoBase = 0;
+    let lucroLiquido = 0;
 
-            // Preço final
-            let precoFinal = precoVenda + valorImposto;
+    if (tipoLucro === "margem") {
+        let margem = parseFloat(document.getElementById("margem").value) || 0;
+        precoBase = custo * (1 + margem/100);
+    } else if (tipoLucro === "alvo") {
+        let lucroAlvo = parseFloat(document.getElementById("lucroAlvo").value) || 0;
+        precoBase = custo + lucroAlvo;
+    } else if (tipoLucro === "preco") {
+        precoBase = parseFloat(document.getElementById("precoFinal").value) || 0;
+    }
 
-            // Lucro líquido (preço final - custo - impostos)
-            let lucroLiquido = precoFinal - custo - valorImposto;
+    let valorIPI = (ipiTipo === "percent") ? precoBase * (ipi/100) : ipi;
+    let valorDIFAL = precoBase * (difal/100);
+    let valorImposto = valorIPI + valorDIFAL;
+    let precoFinal = precoBase + valorImposto;
+    lucroLiquido = precoFinal - custo - valorImposto;
 
-            // Preenche campos do formulário
-            document.getElementById("precoVenda").value = precoFinal.toFixed(2);
+    document.getElementById("resCusto").innerText = custo.toFixed(2);
+    document.getElementById("resImposto").innerText = valorImposto.toFixed(2);
+    document.getElementById("resIPI").innerText = valorIPI.toFixed(2);
+    document.getElementById("resDifal").innerText = valorDIFAL.toFixed(2);
+    document.getElementById("resPreco").innerText = precoFinal.toFixed(2);
+    document.getElementById("resLucro").innerText = lucroLiquido.toFixed(2);
+}
 
-            // Atualiza resultados em tempo real
-            document.getElementById("resCusto").innerText = custo.toFixed(2);
-            document.getElementById("resImposto").innerText = valorImposto.toFixed(2);
-            document.getElementById("resIPI").innerText = valorIPI.toFixed(2);
-            document.getElementById("resDifal").innerText = valorDIFAL.toFixed(2);
-            document.getElementById("resPreco").innerText = precoFinal.toFixed(2);
-            document.getElementById("resLucro").innerText = lucroLiquido.toFixed(2);
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof calcularPreco === "function") {
-                calcularPreco();
-            }
-        });
-    </script>
+document.addEventListener("DOMContentLoaded", function() {
+    alternarLucro();
+});
+</script>
 {% endblock %}
