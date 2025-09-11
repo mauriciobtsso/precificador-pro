@@ -4,24 +4,100 @@
     <form method="POST" id="precificador-form">
         <div class="row">
             <div class="col-lg-7">
+                <!-- Nome -->
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome do Produto</label>
+                    <input type="text" class="form-control" id="nome" name="nome" value="{{ produto.nome if produto else '' }}" required>
                 </div>
-            <div class="col-lg-5">
+
+                <!-- Custo -->
+                <div class="mb-3">
+                    <label for="custo" class="form-label">Custo (R$)</label>
+                    <input type="number" step="0.01" class="form-control" id="custo" name="custo" value="{{ produto.custo if produto else '' }}" oninput="calcularPreco()" required>
                 </div>
+
+                <!-- Margem -->
+                <div class="mb-3">
+                    <label for="margem" class="form-label">Margem de Lucro (%)</label>
+                    <input type="number" step="0.01" class="form-control" id="margem" name="margem" value="{{ produto.margem if produto else '' }}" oninput="calcularPreco()" required>
+                </div>
+
+                <!-- IPI -->
+                <div class="mb-3">
+                    <label for="ipi" class="form-label">IPI (%)</label>
+                    <input type="number" step="0.01" class="form-control" id="ipi" name="ipi" value="{{ produto.ipi if produto else '' }}" oninput="calcularPreco()">
+                </div>
+
+                <!-- DIFAL -->
+                <div class="mb-3">
+                    <label for="difal" class="form-label">DIFAL (%)</label>
+                    <input type="number" step="0.01" class="form-control" id="difal" name="difal" value="{{ produto.difal if produto else '' }}" oninput="calcularPreco()">
+                </div>
+
+                <!-- Preço de venda calculado -->
+                <div class="mb-3">
+                    <label for="precoVenda" class="form-label">Preço de Venda (R$)</label>
+                    <input type="text" class="form-control" id="precoVenda" name="precoVenda" value="{{ produto.preco_venda if produto else '' }}" readonly>
+                </div>
+
+                <button type="submit" class="btn btn-success">Salvar</button>
+                <a href="{{ url_for('main.produtos') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
         </div>
     </form>
-    {% if produto and produto.preco_a_vista %}
+
+    <!-- Resultados em Tempo Real -->
     <div class="card mt-4">
+        <div class="card-header">Resultados em Tempo Real</div>
+        <div class="card-body">
+            <p><strong>Custo Total:</strong> R$ <span id="resCusto">0,00</span></p>
+            <p><strong>Imposto Venda (R$):</strong> R$ <span id="resImposto">0,00</span></p>
+            <p><strong>Valor do IPI (R$):</strong> R$ <span id="resIPI">0,00</span></p>
+            <p><strong>DIFAL a Pagar (R$):</strong> R$ <span id="resDifal">0,00</span></p>
+            <p><strong>Preço de Venda:</strong> R$ <span id="resPreco">0,00</span></p>
+            <p><strong>Lucro Líquido:</strong> R$ <span id="resLucro">0,00</span></p>
         </div>
-    {% endif %}
+    </div>
 {% endblock %}
+
 {% block scripts %}
-    <script src="https://unpkg.com/imask"></script>
     <script>
-        // SCRIPT COMPLETO E CORRIGIDO PARA CÁLCULO E MÁSCARAS
+        function calcularPreco() {
+            let custo = parseFloat(document.getElementById("custo").value) || 0;
+            let margem = parseFloat(document.getElementById("margem").value) || 0;
+            let ipi = parseFloat(document.getElementById("ipi").value) || 0;
+            let difal = parseFloat(document.getElementById("difal").value) || 0;
+
+            // Preço base com margem
+            let precoVenda = custo * (1 + margem/100);
+
+            // Impostos
+            let valorIPI = precoVenda * (ipi/100);
+            let valorDIFAL = precoVenda * (difal/100);
+            let valorImposto = valorIPI + valorDIFAL;
+
+            // Preço final
+            let precoFinal = precoVenda + valorImposto;
+
+            // Lucro líquido (preço final - custo - impostos)
+            let lucroLiquido = precoFinal - custo - valorImposto;
+
+            // Preenche campos do formulário
+            document.getElementById("precoVenda").value = precoFinal.toFixed(2);
+
+            // Atualiza resultados em tempo real
+            document.getElementById("resCusto").innerText = custo.toFixed(2);
+            document.getElementById("resImposto").innerText = valorImposto.toFixed(2);
+            document.getElementById("resIPI").innerText = valorIPI.toFixed(2);
+            document.getElementById("resDifal").innerText = valorDIFAL.toFixed(2);
+            document.getElementById("resPreco").innerText = precoFinal.toFixed(2);
+            document.getElementById("resLucro").innerText = lucroLiquido.toFixed(2);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof calcularPreco === "function") {
+                calcularPreco();
+            }
+        });
     </script>
-    {% if produto %}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => setTimeout(calcularPreco, 150));
-    </script>
-    {% endif %}
 {% endblock %}
