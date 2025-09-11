@@ -149,17 +149,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                         {% for i in range(1, 13) %}
-                            {% set metodo = i ~ "x" %}
-                            {% if metodo in taxas_dict %}
-                            <tr>
-                                <td>{{ metodo }}</td>
-                                {% set preco_parcelado = produto.preco_a_vista / taxas_dict[metodo].coeficiente %}
-                                <td class="text-end">{{ (preco_parcelado / i)|currency }}</td>
-                                <td class="text-end">{{ preco_parcelado|currency }}</td>
-                            </tr>
-                            {% endif %}
-                         {% endfor %}
+                        {% if taxas_dict %}
+                            {% for i in range(1, 13) %}
+                                {% set metodo = i ~ "x" %}
+                                {% if metodo in taxas_dict %}
+                                <tr>
+                                    <td>{{ metodo }}</td>
+                                    {% set preco_parcelado = produto.preco_a_vista / taxas_dict[metodo].coeficiente %}
+                                    <td class="text-end">{{ (preco_parcelado / i)|currency }}</td>
+                                    <td class="text-end">{{ preco_parcelado|currency }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -264,7 +266,6 @@
                 const impostoVenda = unmaskPercent('imposto_venda_percentual');
                 const metodoPrecificacao = document.querySelector('input[name="metodo_precificacao"]:checked').value;
                 const valorMetodo = metodoPrecificacao === 'margem' ? unmaskPercent('valor_metodo') : unmask('valor_metodo');
-
                 const ipiValorForm = ipiTipo === 'percentual' ? unmaskPercent('ipi_valor') : unmask('ipi_valor');
 
                 const valorCompraDesconto = valorFornecedor * (1 - (desconto / 100));
@@ -304,8 +305,6 @@
 
             document.getElementById('precificador-form').addEventListener('input', calcularPreco);
             
-            // Força o cálculo inicial apenas se estiver editando um produto
-            // O setTimeout garante que as máscaras tenham tempo de inicializar os valores
             if ({{ produto is not none|tojson }}) {
                 setTimeout(calcularPreco, 150);
             }
