@@ -21,10 +21,19 @@ def gerenciar_produto(produto_id=None):
         produto.codigo = request.form['nome'][:6].upper()
         produto.nome = request.form['nome']
         produto.custo_total = float(request.form.get('custo', 0))
+
+        # Tipo de lucro
+        produto.tipo_lucro = request.form.get('lucroTipo', 'margem')
         produto.margem = float(request.form.get('margem', 0))
+        produto.lucro_alvo = float(request.form.get('lucroAlvo', 0))
+        produto.preco_final_desejado = float(request.form.get('precoFinal', 0))
+
+        # Impostos
         produto.ipi = float(request.form.get('ipi', 0))
+        produto.ipi_tipo = request.form.get('ipiTipo', 'percent')
         produto.difal = float(request.form.get('difal', 0))
 
+        # Recalcular valores
         produto.calcular_precos()
 
         db.session.commit()
