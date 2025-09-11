@@ -20,6 +20,8 @@
                             <th scope="col">Nome do Produto</th>
                             <th scope="col" class="text-end">Custo Total</th>
                             <th scope="col" class="text-end">Preço à Vista</th>
+                            <th scope="col" class="text-end">Valor do IPI</th>
+                            <th scope="col" class="text-end">DIFAL a Pagar</th>
                             <th scope="col" class="text-end">Lucro Líquido</th>
                             <th scope="col" class="text-center">Ações</th>
                         </tr>
@@ -31,6 +33,8 @@
                             <td>{{ produto.nome }}</td>
                             <td class="text-end">{{ produto.custo_total|currency }}</td>
                             <td class="text-end">{{ produto.preco_a_vista|currency }}</td>
+                            <td class="text-end">{{ produto.valor_ipi|currency if produto.valor_ipi is not none else 'R$ 0,00' }}</td>
+                            <td class="text-end">{{ produto.valor_difal|currency if produto.valor_difal is not none else 'R$ 0,00' }}</td>
                             <td class="text-end {% if produto.lucro_liquido_real is not none and produto.lucro_liquido_real < 0 %}text-danger{% endif %}">
                                 {{ produto.lucro_liquido_real|currency }}
                             </td>
@@ -40,14 +44,14 @@
                                 </a>
                                 <a href="{{ url_for('main.excluir_produto', produto_id=produto.id) }}" 
                                    class="btn btn-danger btn-sm" title="Excluir"
-                                   onclick="return confirm('Tem certeza que deseja excluir o produto \'{{ produto.nome }}\'?');">
+                                   onclick="return confirm('Tem certeza que deseja excluir o produto \'{{ produto.nome }}\' ?');">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center py-4">Nenhum produto cadastrado ainda.</td>
+                            <td colspan="8" class="text-center py-4">Nenhum produto cadastrado ainda.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
