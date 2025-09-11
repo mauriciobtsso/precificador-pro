@@ -28,22 +28,18 @@
         </div>
     </div>
 {% endblock %}
-
 {% block scripts %}
 <script src="https://unpkg.com/imask"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const taxaInput = document.getElementById('taxa_percentual');
-        const coeficienteInput = document.getElementById('coeficiente');
-        
-        const percentageMask = IMask(taxaInput, {
+        const percentageMask = IMask(document.getElementById('taxa_percentual'), {
             mask: 'num %',
             blocks: { num: { mask: Number, scale: 2, thousandsSeparator: '.', padFractionalZeros: false, radix: ',', mapToRadix: ['.'] } }
         });
-
+        const taxaInput = document.getElementById('taxa_percentual');
+        const coeficienteInput = document.getElementById('coeficiente');
         function calcularCoeficiente() {
             let taxa = percentageMask.unmaskedValue ? parseFloat(percentageMask.unmaskedValue) : 0;
-            
             if (taxa >= 0 && taxa < 100) {
                 let coeficiente = 1 - (taxa / 100);
                 coeficienteInput.value = coeficiente.toFixed(4).replace('.', ',');
@@ -52,79 +48,7 @@
             }
         }
         taxaInput.addEventListener('input', calcularCoeficiente);
-        calcularCoeficiente(); // Calcula ao carregar
+        calcularCoeficiente();
     });
 </script>
 {% endblock %}
-
-
----
-
-#### **4. Arquivo `app/templates/produto_form.html` (Versão Final Completa)**
-
-**O que mudou:** O script foi totalmente reescrito para corrigir os bugs de cálculo, o carregamento dos dados na edição e a distorção de valores.
-
-```html
-{% extends "base.html" %}
-{% block title %}{% if produto %}Editar Produto{% else %}Precificar Novo Produto{% endif %}{% endblock %}
-{% block content %}
-    <form method="POST" id="precificador-form">
-        <div class="row">
-            <!-- Coluna de Entradas -->
-            <div class="col-lg-7">
-                <div class="card mb-4">
-                    <div class="card-header fw-bold">Informações de Custo</div>
-                    <div class="card-body">
-                        <!-- Campos SKU, Nome, etc. -->
-                    </div>
-                </div>
-                <div class="card mb-4">
-                    <div class="card-header fw-bold">Precificação e Impostos de Venda</div>
-                    <div class="card-body">
-                        <!-- Campos de Precificação e Imposto -->
-                    </div>
-                </div>
-            </div>
-            <!-- Coluna de Resultados -->
-            <div class="col-lg-5">
-                <div class="card mb-4 position-sticky" style="top: 2rem;">
-                    <!-- Seção de Resultados e botões -->
-                </div>
-            </div>
-        </div>
-    </form>
-    
-    <!-- Seção de Simulação de Parcelamento -->
-    {% if produto and produto.preco_a_vista %}
-    <div class="card mt-4">
-        <!-- Tabela de simulação -->
-    </div>
-    {% endif %}
-{% endblock %}
-
-{% block scripts %}
-    <script src="https://unpkg.com/imask"></script>
-    <script>
-        // SCRIPT COMPLETO E CORRIGIDO
-    </script>
-    {% if produto %}
-    <script>
-        // Dispara o cálculo inicial
-        document.addEventListener('DOMContentLoaded', () => setTimeout(calcularPreco, 100));
-    </script>
-    {% endif %}
-{% endblock %}
-
-
-### **Próximos Passos (O Ritual Final)**
-
-1.  **Substitua o conteúdo** dos 4 arquivos.
-2.  **Envie a atualização para o GitHub** com os comandos do PowerShell:
-    ```powershell
-    git add .
-    git commit -m "FIX: Versão consolidada com correções de formulário e modelo de dados"
-    git push origin master
-    3.  **Recrie o banco de dados no Neon** (delete o projeto antigo e crie um novo) e atualize a `DATABASE_URL` no Render.
-4.  Faça o **deploy no Render**.
-
-Desta vez, a aplicação deve se comportar de forma estável e previsível.
