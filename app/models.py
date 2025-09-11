@@ -1,33 +1,25 @@
-from . import db, login_manager
-from flask_login import UserMixin
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+from app import db
 
 class Produto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    codigo = db.Column(db.String(80), unique=True, nullable=False)
+    codigo = db.Column(db.String(50), unique=True, nullable=False)
     nome = db.Column(db.String(120), nullable=False)
-    valor_fornecedor_real = db.Column(db.Float, nullable=False, default=0.0)
-    desconto_fornecedor_percentual = db.Column(db.Float, default=0.0)
-    frete_real = db.Column(db.Float, default=0.0)
-    ipi_valor = db.Column(db.Float, default=0.0)
-    ipi_tipo = db.Column(db.String(20), default='fixo')
-    difal_percentual = db.Column(db.Float, default=0.0)
-    imposto_venda_percentual = db.Column(db.Float, default=0.0)
-    metodo_precificacao = db.Column(db.String(20), default='margem')
-    valor_metodo = db.Column(db.Float, default=0.0)
-    custo_total = db.Column(db.Float, nullable=True)
+    custo_total = db.Column(db.Float, nullable=False, default=0.0)
+    margem = db.Column(db.Float, nullable=False, default=0.0)
     preco_a_vista = db.Column(db.Float, nullable=True)
     lucro_liquido_real = db.Column(db.Float, nullable=True)
 
-class TaxaPagamento(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    metodo = db.Column(db.String(80), unique=True, nullable=False)
-    taxa_percentual = db.Column(db.Float, nullable=False)
-    coeficiente = db.Column(db.Float, nullable=False)
+    # Novos campos
+    ipi = db.Column(db.Float, nullable=True, default=0.0)
+    difal = db.Column(db.Float, nullable=True, default=0.0)
+    valor_ipi = db.Column(db.Float, nullable=True, default=0.0)
+    valor_difal = db.Column(db.Float, nullable=True, default=0.0)
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, index=True)
+    def calcular_precos(self):
+        """Método auxiliar para calcular preços e impostos."""
+        preco_base = self.custo_total * (1 + (self.margem or 0)/100)
+        self.valor_ipi = preco_base * ((self.ipi or 0)/100)
+        self.valor_difal = preco_base * ((self.difal or 0)/100)
+        total_impostos = self.valor_ipi + self.valor_difal
+        self.preco_a_vista = preco_base + total_impostos
+        self.lucro_liquido_real = self.preco_a_vista - self.custo_total - total_impostos
