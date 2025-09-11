@@ -9,6 +9,15 @@ load_dotenv()
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
+login_manager.login_message = "Por favor, faça o login para acessar esta página."
+login_manager.login_message_category = "info"
+
+def format_currency(value):
+    """Função para formatar valores como moeda brasileira (R$)."""
+    if value is None:
+        return "N/A"
+    formatted_value = f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"R$ {formatted_value}"
 
 def create_app():
     app = Flask(__name__)
@@ -22,6 +31,11 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
+    # AQUI ESTÁ A CORREÇÃO:
+    # Registra o filtro diretamente na instância da aplicação
+    app.jinja_env.filters['currency'] = format_currency
+
+    # Importa e registra o blueprint DEPOIS de tudo configurado
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
@@ -29,7 +43,6 @@ def create_app():
         from . import models
         db.create_all()
 
-        # AQUI ESTÁ A MÁGICA: Popula o banco se ele estiver vazio
         from seed import seed_data
         seed_data(db)
 
