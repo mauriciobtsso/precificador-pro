@@ -3,11 +3,9 @@ from flask_login import UserMixin
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Carrega o usuário para o Flask-Login."""
     return User.query.get(int(user_id))
 
 class Produto(db.Model):
-    """Modelo da tabela de Produtos."""
     id = db.Column(db.Integer, primary_key=True)
     codigo = db.Column(db.String(80), unique=True, nullable=False)
     nome = db.Column(db.String(120), nullable=False)
@@ -17,15 +15,15 @@ class Produto(db.Model):
     desconto_fornecedor_percentual = db.Column(db.Float, default=0.0)
     frete_real = db.Column(db.Float, default=0.0)
     ipi_valor = db.Column(db.Float, default=0.0)
-    ipi_tipo = db.Column(db.String(20), default='fixo') # 'fixo' ou 'percentual'
+    ipi_tipo = db.Column(db.String(20), default='fixo')
     difal_percentual = db.Column(db.Float, default=0.0)
     
-    # Campos de Precificação (para salvar o estado do formulário)
+    # Novos campos para salvar o estado da precificação (ESSA ERA A PARTE FALTANTE)
     imposto_venda_percentual = db.Column(db.Float, default=0.0)
     metodo_precificacao = db.Column(db.String(20), default='margem')
     valor_metodo = db.Column(db.Float, default=0.0)
     
-    # Campos de Resultado (calculados)
+    # Campos de Resultado
     custo_total = db.Column(db.Float, nullable=True)
     preco_a_vista = db.Column(db.Float, nullable=True)
     lucro_liquido_real = db.Column(db.Float, nullable=True)
@@ -34,7 +32,6 @@ class Produto(db.Model):
         return f'<Produto {self.nome}>'
 
 class TaxaPagamento(db.Model):
-    """Modelo da tabela de Taxas de Pagamento."""
     id = db.Column(db.Integer, primary_key=True)
     metodo = db.Column(db.String(80), unique=True, nullable=False)
     taxa_percentual = db.Column(db.Float, nullable=False)
@@ -44,7 +41,6 @@ class TaxaPagamento(db.Model):
         return f'<TaxaPagamento {self.metodo}>'
 
 class User(UserMixin, db.Model):
-    """Modelo da tabela de Usuários."""
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
 

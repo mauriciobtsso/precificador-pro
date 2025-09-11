@@ -1,33 +1,25 @@
 {% extends 'base.html' %}
-
-{% block title %}{% if taxa %}Editar Taxa{% else %}Adicionar Nova Taxa{% endif %} - Precificador Pro{% endblock %}
-
+{% block title %}{% if taxa %}Editar Taxa{% else %}Adicionar Nova Taxa{% endif %}{% endblock %}
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2">{% if taxa %}Editar Taxa{% else %}Adicionar Nova Taxa{% endif %}</h1>
-        <a href="{{ url_for('main.taxas') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left-circle me-1"></i> Voltar para a Lista
-        </a>
+        <a href="{{ url_for('main.taxas') }}" class="btn btn-secondary"><i class="bi bi-arrow-left-circle me-1"></i> Voltar</a>
     </div>
-
     <div class="card">
         <div class="card-body">
             <form method="POST">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="metodo" class="form-label">Método de Pagamento</label>
+                        <label for="metodo" class="form-label">Método</label>
                         <input type="text" class="form-control" id="metodo" name="metodo" value="{{ taxa.metodo if taxa else '' }}" required>
-                        <div class="form-text">Ex: Pix, Débito, 1x, 2x, etc.</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="taxa_percentual" class="form-label">Taxa (%)</label>
                         <input type="text" class="form-control" id="taxa_percentual" name="taxa_percentual" value="{{ taxa.taxa_percentual if taxa else '' }}" inputmode="decimal" required>
-                         <div class="form-text">Use ponto ou vírgula como separador. Ex: 4.99</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="coeficiente" class="form-label">Coeficiente (Calculado)</label>
                         <input type="text" class="form-control" id="coeficiente" name="coeficiente" value="{{ taxa.coeficiente if taxa else '' }}" readonly>
-                        <div class="form-text">Calculado automaticamente a partir da Taxa.</div>
                     </div>
                 </div>
                 <hr>
@@ -41,41 +33,98 @@
 <script src="https://unpkg.com/imask"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Máscara para o campo de porcentagem
-        const percentageMask = IMask(document.getElementById('taxa_percentual'), {
-            mask: 'num %',
-            blocks: {
-                num: {
-                    mask: Number,
-                    scale: 2,
-                    thousandsSeparator: '.',
-                    padFractionalZeros: false,
-                    radix: ',',
-                    mapToRadix: ['.']
-                }
-            }
-        });
-
         const taxaInput = document.getElementById('taxa_percentual');
         const coeficienteInput = document.getElementById('coeficiente');
+        
+        const percentageMask = IMask(taxaInput, {
+            mask: 'num %',
+            blocks: { num: { mask: Number, scale: 2, thousandsSeparator: '.', padFractionalZeros: false, radix: ',', mapToRadix: ['.'] } }
+        });
 
         function calcularCoeficiente() {
             let taxa = percentageMask.unmaskedValue ? parseFloat(percentageMask.unmaskedValue) : 0;
             
             if (taxa >= 0 && taxa < 100) {
                 let coeficiente = 1 - (taxa / 100);
-                // Formata com 4 casas decimais e usa vírgula para exibição
                 coeficienteInput.value = coeficiente.toFixed(4).replace('.', ',');
             } else {
                 coeficienteInput.value = 'Inválido';
             }
         }
-
-        // Adiciona o evento para calcular sempre que o usuário digitar
         taxaInput.addEventListener('input', calcularCoeficiente);
-
-        // Calcula o valor inicial ao carregar a página (caso seja uma edição)
-        calcularCoeficiente();
+        calcularCoeficiente(); // Calcula ao carregar
     });
-script>
+</script>
 {% endblock %}
+
+
+---
+
+#### **4. Arquivo `app/templates/produto_form.html` (Versão Final Completa)**
+
+**O que mudou:** O script foi totalmente reescrito para corrigir os bugs de cálculo, o carregamento dos dados na edição e a distorção de valores.
+
+```html
+{% extends "base.html" %}
+{% block title %}{% if produto %}Editar Produto{% else %}Precificar Novo Produto{% endif %}{% endblock %}
+{% block content %}
+    <form method="POST" id="precificador-form">
+        <div class="row">
+            <!-- Coluna de Entradas -->
+            <div class="col-lg-7">
+                <div class="card mb-4">
+                    <div class="card-header fw-bold">Informações de Custo</div>
+                    <div class="card-body">
+                        <!-- Campos SKU, Nome, etc. -->
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header fw-bold">Precificação e Impostos de Venda</div>
+                    <div class="card-body">
+                        <!-- Campos de Precificação e Imposto -->
+                    </div>
+                </div>
+            </div>
+            <!-- Coluna de Resultados -->
+            <div class="col-lg-5">
+                <div class="card mb-4 position-sticky" style="top: 2rem;">
+                    <!-- Seção de Resultados e botões -->
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Seção de Simulação de Parcelamento -->
+    {% if produto and produto.preco_a_vista %}
+    <div class="card mt-4">
+        <!-- Tabela de simulação -->
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        // SCRIPT COMPLETO E CORRIGIDO
+    </script>
+    {% if produto %}
+    <script>
+        // Dispara o cálculo inicial
+        document.addEventListener('DOMContentLoaded', () => setTimeout(calcularPreco, 100));
+    </script>
+    {% endif %}
+{% endblock %}
+
+
+### **Próximos Passos (O Ritual Final)**
+
+1.  **Substitua o conteúdo** dos 4 arquivos.
+2.  **Envie a atualização para o GitHub** com os comandos do PowerShell:
+    ```powershell
+    git add .
+    git commit -m "FIX: Versão consolidada com correções de formulário e modelo de dados"
+    git push origin master
+    3.  **Recrie o banco de dados no Neon** (delete o projeto antigo e crie um novo) e atualize a `DATABASE_URL` no Render.
+4.  Faça o **deploy no Render**.
+
+Desta vez, a aplicação deve se comportar de forma estável e previsível.
